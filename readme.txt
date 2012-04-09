@@ -1,0 +1,1 @@
+Make sure python is supported on gimp, Python 2.6 tops for Gimp 2.6.  Also need pygtk.  Why doesn't Gimp tell me this when it tries to load the py script?  Why doesn't it warn me that python is broken and needs these things?  A: Because it sucks.
