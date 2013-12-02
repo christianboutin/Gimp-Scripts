@@ -122,12 +122,37 @@ def log(string):
         ffile.close()
     
 
+def process(img,previousStatus,exportGroup):
+    for i in img.layers:
+        pdb.gimp_message(i.name)            
+        previousStatus.append(pdb.gimp_drawable_get_visible(i))
+        if isDotted(i):
+            groupName = groupNameFromLayer(i, img)
+            found = False
+            if (groupName != ""):
+                for j in exportGroup:
+                    if j.mName == groupName:
+                        log("Adding : "+i.name+" to "+j.mName)
+                        j.addLayer(i)
+                        found = True
+
+            if (found == False):
+                newGroup = layerGroup(i,img)
+                log("Creating group for layer : "+i.name+" with name "+newGroup.mName)
+                exportGroup.append(newGroup) # If it's not part of a group, then it is its own group
+            pdb.gimp_drawable_set_visible(i, False)
+        else:
+            if (pdb.gimp_item_is_group(i)):
+                process(i,previousStatus,exportGroup)
+    
 def saveLayer(img, layer):
     output_path = "."
     exportGroup=[]
     previousStatus=[]
     ffile = open("C:\\temp\\saveDottedLayersLog.txt","wt+")
     ffile.close()
+
+
     try:
         img.undo_group_start()
         root_name = img.filename.split(".")[0]
@@ -143,24 +168,8 @@ def saveLayer(img, layer):
         doc = xml.dom.minidom.Document()
         elem = doc.createElementNS("root", "root")
         doc.appendChild(elem)
-
-        for i in img.layers:
-            previousStatus.append(pdb.gimp_drawable_get_visible(i))
-            if isDotted(i):
-                groupName = groupNameFromLayer(i, img)
-                found = False
-                if (groupName != ""):
-                    for j in exportGroup:
-                        if j.mName == groupName:
-                            log("Adding : "+i.name+" to "+j.mName)
-                            j.addLayer(i)
-                            found = True
-
-                if (found == False):
-                    newGroup = layerGroup(i,img)
-                    log("Creating group for layer : "+i.name+" with name "+newGroup.mName)
-                    exportGroup.append(newGroup) # If it's not part of a group, then it is its own group
-                pdb.gimp_drawable_set_visible(i, False)
+        process(img,previousStatus,exportGroup)
+                    
 
                 
         log("---")
